@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particionador de Áudio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadein 1s;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: slidein 1s;
+        }
+
+        @keyframes slidein {
+            from {
+                margin-top: 50px;
+                opacity: 0;
+            }
+            to {
+                margin-top: 0;
+                opacity: 1;
+            }
+        }
+
+        form {
+            text-align: center;
+            animation: slidein 1s;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            animation: slidein 1s;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            animation: slidein 1s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #audiosCortados {
+            margin-top: 20px;
+            animation: slidein 1s;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .esconder {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Particionador de Áudio</h1>
+        <form id="calculoForm" enctype="multipart/form-data">
+            <label for="arquivo">Selecione o Vídeo:</label>
+            <input type="file" id="arquivo" name="arquivo" accept="video/*"><br><br>
+            <button id="botaoDividir" type="submit">Dividir Áudio</button>
+        </form>
+        <div id="audiosCortados"></div>
+        <div id="mensagem" style="text-align: center;"></div>
+    </div>
+
+    <script>
+        document.getElementById('calculoForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            document.getElementById('mensagem').innerText = 'Cortando o áudio. Por favor, aguarde...';
+            document.getElementById('botaoDividir').classList.add('esconder'); // Esconder o botão após o primeiro clique
+
+            var formData = new FormData(this);
+
+            fetch('/dividir_audio', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('audiosCortados').innerText = 'Erro: ' + data.error;
+                } else {
+                    var audiosHtml = '<h2>Audios Cortados:</h2><ul>';
+                    data.audios.forEach(audio => {
+                        audiosHtml += `<li><a href="/downloads/${audio}" download>${audio}</a></li>`;
+                    });
+                    audiosHtml += '</ul>';
+                    document.getElementById('audiosCortados').innerHTML = audiosHtml;
+                }
+            })
+            .catch(error => console.error('Erro:', error))
+            .finally(() => {
+                document.getElementById('mensagem').innerText = ''; // Removendo a mensagem de corte após a conclusão
+                document.getElementById('botaoDividir').classList.remove('esconder'); // Mostrar o botão novamente após o processamento ser concluído
+            });
+        });
+    </script>
+</body>
+</html>
